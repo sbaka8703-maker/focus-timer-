@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Focus Timer & To-Do List</title>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --card: #ffffff;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --success: #10b981;
+      --danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 24px 16px;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--border);
+    }
+
+    h1 {
+      font-size: 1.25rem;
+      text-align: center;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    /* Preset Buttons */
+    .presets {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .preset-btn {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .preset-btn.active,
+    .preset-btn:hover {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    /* Custom Minutes Input */
+    .custom-time {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .custom-time input {
+      width: 75px;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      text-align: center;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .custom-time button {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 8px;
+      background: var(--text);
+      color: #fff;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    /* Timer Display */
+    .timer-display {
+      font-size: 4.2rem;
+      font-weight: 700;
+      text-align: center;
+      letter-spacing: 2px;
+      margin: 10px 0;
+      font-variant-numeric: tabular-nums;
+      color: var(--primary);
+    }
+
+    .active-task-banner {
+      text-align: center;
+      font-size: 0.95rem;
+      color: var(--muted);
+      margin-bottom: 20px;
+      min-height: 22px;
+    }
+
+    .active-task-banner span {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border-radius: 10px;
+      border: none;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    .btn-start {
+      background: var(--primary);
+      color: #fff;
+      min-width: 130px;
+    }
+
+    .btn-reset {
+      background: var(--border);
+      color: var(--text);
+    }
+
+    /* To-Do Section */
+    .todo-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .todo-header h2 {
+      font-size: 1.1rem;
+    }
+
+    .todo-count {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .todo-form {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .todo-form input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    .todo-form input:focus {
+      border-color: var(--primary);
+    }
+
+    .todo-form button {
+      padding: 10px 18px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .todo-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .todo-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fafafa;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .todo-item.selected {
+      border-color: var(--primary);
+      background: #eff6ff;
+    }
+
+    .todo-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .todo-left input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .todo-text {
+      font-size: 0.95rem;
+      word-break: break-word;
+    }
+
+    .todo-item.completed .todo-text {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+
+    .delete-btn {
+      background: none;
+      border: none;
+      color: var(--danger);
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .delete-btn:hover {
+      background: #fee2e2;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      padding: 16px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Timer Card -->
+    <div class="card">
+      <h1>Đồng Hồ Tập Trung</h1>
+
+      <div class="presets">
+        <button class="preset-btn active" data-min="30">30 phút</button>
+        <button class="preset-btn" data-min="45">45 phút</button>
+        <button class="preset-btn" data-min="60">60 phút</button>
+        <button class="preset-btn" data-min="90">90 phút</button>
+      </div>
+
+      <div class="custom-time">
+        <label for="customMinutes">Tùy chỉnh (≥ 30p):</label>
+        <input type="number" id="customMinutes" min="30" max="300" value="30" />
+        <button id="applyCustomBtn">Áp dụng</button>
+      </div>
+
+      <div class="timer-display" id="timerDisplay">30:00</div>
+
+      <div class="active-task-banner" id="activeTaskBanner">
+        Chưa chọn công việc đang làm
+      </div>
+
+      <div class="controls">
+        <button class="btn btn-start" id="startPauseBtn">Bắt đầu</button>
+        <button class="btn btn-reset" id="resetBtn">Đặt lại</button>
+      </div>
+    </div>
+
+    <!-- To-Do Card -->
+    <div class="card">
+      <div class="todo-header">
+        <h2>Danh Sách Việc Cần Làm</h2>
+        <span class="todo-count" id="todoCount">0/0 hoàn thành</span>
+      </div>
+
+      <form class="todo-form" id="todoForm">
+        <input type="text" id="todoInput" placeholder="Nhập công việc mới..." required />
+        <button type="submit">Thêm</button>
+      </form>
+
+      <ul class="todo-list" id="todoList"></ul>
+    </div>
+  </div>
+
+  <script>
+    // --- Timer Logic ---
+    let selectedMinutes = 30;
+    let remainingSeconds = selectedMinutes * 60;
+    let timerInterval = null;
+    let isRunning = false;
+
+    const timerDisplay = document.getElementById("timerDisplay");
+    const startPauseBtn = document.getElementById("startPauseBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const presetBtns = document.querySelectorAll(".preset-btn");
+    const customMinutesInput = document.getElementById("customMinutes");
+    const applyCustomBtn = document.getElementById("applyCustomBtn");
+
+    function playBeep() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.6);
+      } catch (e) {}
+    }
+
+    function updateDisplay() {
+      const mins = Math.floor(remainingSeconds / 60);
+      const secs = remainingSeconds % 60;
+      const formatted = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+      timerDisplay.textContent = formatted;
+      document.title = `${formatted} - Focus Timer`;
+    }
+
+    function setDuration(mins) {
+      pauseTimer();
+      selectedMinutes = Math.max(30, mins);
+      remainingSeconds = selectedMinutes * 60;
+      customMinutesInput.value = selectedMinutes;
+      updateDisplay();
+    }
+
+    function startTimer() {
+      if (isRunning) return;
+      isRunning = true;
+      startPauseBtn.textContent = "Tạm dừng";
+      timerInterval = setInterval(() => {
+        if (remainingSeconds > 0) {
+          remainingSeconds--;
+          updateDisplay();
+        } else {
+          pauseTimer();
+          playBeep();
+          alert("Đã hết thời gian tập trung!");
+        }
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      isRunning = false;
+      startPauseBtn.textContent = "Bắt đầu";
+      clearInterval(timerInterval);
+    }
+
+    startPauseBtn.addEventListener("click", () => {
+      if (isRunning) pauseTimer();
+      else startTimer();
+    });
+
+    resetBtn.addEventListener("click", () => {
+      setDuration(selectedMinutes);
+    });
+
+    presetBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        presetBtns.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        setDuration(parseInt(btn.dataset.min, 10));
+      });
+    });
+
+    applyCustomBtn.addEventListener("click", () => {
+      const val = parseInt(customMinutesInput.value, 10);
+      if (isNaN(val) || val < 30) {
